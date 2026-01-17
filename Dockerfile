@@ -1,5 +1,5 @@
 # build the puzzlebox binary
-FROM --platform=$BUILDPLATFORM debian:unstable-slim AS puzzlebuilder
+FROM --platform=$BUILDPLATFORM debian:stable-slim AS puzzlebuilder
 
 # Otherwise you will get an interactive setup session
 ENV DEBIAN_FRONTEND=noninteractive
@@ -13,6 +13,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
             build-essential \
             gcc \
             libpopt-dev \
+            wget \
  && apt-get clean \
  && pwck -s \
  && grpck -s \
@@ -28,10 +29,16 @@ RUN cd /tmp/PuzzleBox \
  && make puzzlebox \
  && mv -v puzzlebox entrypoint.sh /usr/local/bin/
 
+# build openscad
+RUN wget -qO- https://files.openscad.org/OBS-Repository-Key.pub \
+    | tee /etc/apt/trusted.gpg.d/obs-openscad-nightly.asc
+RUN echo "deb https://download.opensuse.org/repositories/home:/t-paul/Debian_13/ > 
+
+
 WORKDIR /opt/
 
 # Build the final container
-FROM --platform=$BUILDPLATFORM debian:unstable-slim
+FROM --platform=$BUILDPLATFORM debian:stable-slim
 
 # Otherwise you will get an interactive setup session
 ENV DEBIAN_FRONTEND=noninteractive
